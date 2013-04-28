@@ -1,4 +1,4 @@
-sadfNAME UARTTEST
+NAME UARTTEST
 
 PUBLIC start
 
