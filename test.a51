@@ -1,0 +1,2 @@
+MOV A,#0xff
+END

@@ -1,0 +1,12 @@
+*.txt
+*.plg
+*.uvgui.*
+*.lnp
+*.M51
+*.bak
+*.LST
+*.OBJ
+RA
+*.uvopt
+
+*.uvproj
