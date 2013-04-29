@@ -8,5 +8,6 @@
 *.OBJ
 RA
 *.uvopt
+*._ia
 
 *.uvproj
