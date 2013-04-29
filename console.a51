@@ -15,13 +15,13 @@ processC:
 		SETB WDT
 		SETB SWDT
 		
-		;loopRec:
-			;MOV A,S0CON	
-		;JNB RI0,loopRec
+		loopRec:
+			MOV A,S0CON	
+		JNB RI0,loopRec
 		
-		;MOV r6,S0BUF
+		MOV r7,S0BUF
 		
-		;CLR RI0
+		CLR RI0
 		
 	
 	JMP endlessLoop

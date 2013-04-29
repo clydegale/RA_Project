@@ -2,7 +2,7 @@ $NOMOD51
 #include <Reg517a.inc>
 
 EXTRN CODE (processA, processB, processC)
-PUBLIC Delete, New
+PUBLIC Delete, New, handleSerial0Input
 
 ;------------------------------------------------------------------------------
 ; Put the STACK segment in the main module.
@@ -36,16 +36,19 @@ RETI
 
 main:
 	
+	CALL init
+	CALL processC
+
+init:
+
 	; Stack Pointer auf reservierten Bereich setzen
 	MOV		SP,#?STACK
 	
-	SETB EAL
-	SETB IEN0.4
+	; Enable All Interrupts and the specific Serial0
+	;SETB EAL
+	;SETB IEN0.4
 	
-	CALL initUART
-	CALL processC
-
-initUART:
+	
 	; Serial Mode 1: 8bit-UART bei Baudrate 9600
 	CLR		SM0
 	SETB	SM1
@@ -58,6 +61,10 @@ initUART:
 	
 RET
 
+handleSerial0Input:
+; check input on r7 and call specific routine
+	
+; todo process table (dptr)
 Delete:
 	
 New:
