@@ -10,6 +10,8 @@ RSEG		processCSegment
 
 processC:
 
+	; TODO add processes to table of scheduler
+
 	endlessLoop:
 		; reset watchdog timer
 		SETB WDT
