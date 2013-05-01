@@ -10,13 +10,11 @@ PUBLIC processB
 processBSegment SEGMENT CODE
 RSEG		processBSegment
 
-
-
 processB:
 
 	CALL printToUART
-	CALL EOF
-
+	
+	
 printToUART:
 	; 0 = 48
 	; 1 = 49
@@ -37,7 +35,4 @@ printToUART:
 		
 	CJNE R1, #48d, countDownLoop
 	
-RET
-	
-EOF:
-	END
+END

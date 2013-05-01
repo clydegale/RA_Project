@@ -9,9 +9,6 @@ PUBLIC processA
 processASegment SEGMENT CODE
 RSEG		processASegment
 
-
-
-
 MOV R5, #0xF6 ; magic number
 
 ;CALL processA
@@ -24,7 +21,6 @@ processA:
 		CALL waitRoutine		
 		
 		JMP mainLoop
-
 
 printAToUART:
 	MOV S0BUF, #'a'
@@ -43,7 +39,7 @@ waitRoutine:
 	ORL A, #00010000b
 	MOV TCON, A
 	
-	MOV R1, #0x00
+	MOV R1, #0x00	
 	timerPollingLoop:
 		MOV A, TCON
 		
@@ -66,5 +62,4 @@ waitRoutine:
 	
 	RET
 
-EOF:
-	END
+END

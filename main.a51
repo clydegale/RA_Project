@@ -8,12 +8,9 @@ PUBLIC Delete, New, handleSerial0Input
 ; Put the STACK segment in the main module.
 ;------------------------------------------------------------------------------
 ?STACK         	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
-						RSEG    ?STACK          ; switch to ?STACK segment.
-						DS      5               ; reserve your stack space
+				RSEG    ?STACK          ; switch to ?STACK segment.
+				DS      5               ; reserve your stack space
                                         ; 5 bytes in this example.
-
-
-
 
 ; Input Interrupt
 CSEG AT 0x23

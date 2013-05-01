@@ -26,6 +26,4 @@ processC:
 	
 	JMP endlessLoop
 
-
-
 END
