@@ -44,6 +44,8 @@ RSEG mainSegment
 timer1Interrupt:
 	CLR TF1
 	
+	; TODO: No Calls in Interrup Routine.
+	; Copy all external code directly into this routine
 	CALL pushRegisters	
 	CALL saveStackPointer
 	
