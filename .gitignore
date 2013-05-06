@@ -10,5 +10,6 @@ RA
 RA_Project
 *.uvopt
 *._ia
-
+*.jpg
+*.jpeg
 *.uvproj
