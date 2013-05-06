@@ -3,6 +3,7 @@ $NOMOD51
 
 NAME processB
 
+EXTRN DATA (processTable)
 PUBLIC processB
 
 
@@ -11,6 +12,10 @@ processBSegment SEGMENT CODE
 RSEG		processBSegment
 
 processB:
+
+		MOV A, #processTable
+		ADD A, 30
+		MOV SP,A
 
 	CALL printToUART
 	

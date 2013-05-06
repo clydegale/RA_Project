@@ -3,6 +3,7 @@ $NOMOD51
 
 NAME processA
 
+EXTRN DATA (processTable)
 PUBLIC processA
 
 ; Datensegment für die eigenen Variablen anlegen
@@ -15,6 +16,10 @@ MOV R5, #0xF6 ; magic number
 ;SJMP EOF
 
 processA:
+
+		MOV A, #processTable
+		ADD A, 4
+		MOV SP,A
 
 	mainLoop:
 		CALL printAToUART
@@ -47,12 +52,10 @@ waitRoutine:
 		INC R1
 		
 		; check if loop is finished
-		JNB ACC.5, timerPollingLoop
+	JNB ACC.5, timerPollingLoop
 	
-	; reset watchdog timer
-	SETB WDT
-	SETB SWDT
-	
+	CALL resetWD
+
 	; reset TCON
 	MOV A, TCON	
 	ANL A, #11011111b
@@ -61,5 +64,11 @@ waitRoutine:
 	DJNZ R5, timerPollingLoop
 	
 	RET
+	
+resetWD:
+	; reset watchdog timer
+	SETB WDT
+	SETB SWDT
+RET
 
 END
