@@ -17,7 +17,7 @@ MOV R5, #0xF6 ; magic number
 
 processA:
 
-		MOV A, #processTable
+		MOV A, processTable
 		ADD A, 4
 		MOV SP,A
 

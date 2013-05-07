@@ -13,7 +13,7 @@ RSEG		processBSegment
 
 processB:
 
-		MOV A, #processTable
+		MOV A, processTable
 		ADD A, 30
 		MOV SP,A
 

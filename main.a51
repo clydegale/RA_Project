@@ -8,10 +8,9 @@ PUBLIC isNew, isDel, isNon
 ;------------------------------------------------------------------------------
 ; Put the STACK segment in the main module.
 ;------------------------------------------------------------------------------
-?STACK         	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
+?STACK	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
 				RSEG    ?STACK          ; switch to ?STACK segment.
-				DS      5               ; reserve your stack space
-                                       ; 5 bytes in this example.
+				DS 5 ; reserve your stack space
 
  ;Datensegment zum speichern der Prozess Tabelle 
 mainData SEGMENT DATA
@@ -55,7 +54,7 @@ timer1Interrupt:
 		CALL resetWD
 		CALL incrementIndex
 		
-		MOV R0, #newBit
+		MOV R0, newBit
 		CJNE R0, #isNew, afterNew
 			JMP new
 		afterNew:
@@ -63,8 +62,10 @@ timer1Interrupt:
 				CALL delete
 		
 		newOrDeleteFinished:
-		MOV R1, #index
-		CJNE R1,#0x01, processTableLoop 
+		
+		; check active flag
+		MOV R1, index
+	CJNE R1,#0x01, processTableLoop 
 	
 	CALL loadStackPointer	
 	JMP popRegisters
@@ -74,7 +75,6 @@ timer1Interrupt:
 	MOV newBit, #isNon
 	
 RETI
-	
 
 
 main:
@@ -82,6 +82,7 @@ main:
 	MOV		SP,#?STACK
 	
 	CALL init
+	CALL callProcessC
 	
 	; Setting Prescaler (currently not working)
 	;MOV TL1, #10000000b
@@ -95,7 +96,12 @@ main:
 		CALL resetWD
 	JMP endlessSchedLoop
 
-
+callProcessC:
+	MOV DPTR, #processA
+	MOV processStartAdress + 1, DPL
+	MOV processStartAdress + 0, DPH
+	MOV newBit, #isNew
+RET
 
 init:
 	
@@ -111,8 +117,8 @@ init:
 	; Port1
 	SETB	REN0			; Empfang ermöglichen
 	SETB	BD				; Baudraten-Generator aktivieren
-	MOV		S0RELL,#0xD9	; Baudrate einstellen
-	MOV		S0RELH,#0x03	; 9600 = 03D9H
+	MOV	S0RELL,#0xD9	; Baudrate einstellen
+	MOV	S0RELH,#0x03	; 9600 = 03D9H
 	
 	; Set TimerMode
 	MOV A, TMOD
@@ -147,6 +153,8 @@ init:
 	MOV processTable + 54, DPH
 	MOV processTable + 52, #0x00
 	
+	; init index with correct offset of the processtable
+	MOV index, #processTable
 RET
 
 
@@ -156,20 +164,20 @@ delete:
 	MOV R2, DPH
 	
 	checkProcessA:
-		CJNE R2,#processTable + 2, checkProcessB
-			CJNE R1,#processTable + 3, checkProcessB
+		CJNE R2, #processTable + 2, checkProcessB
+			CJNE R1, #processTable + 3, checkProcessB
 				MOV R0, #processTable + 0
 				MOV @R0, #0x00
 				JMP endDelete
 	checkProcessB:
-		CJNE R2,#processTable + 28, checkProcessC
-			CJNE R1,#processTable + 29, checkProcessC
+		CJNE R2, #processTable + 28, checkProcessC
+			CJNE R1, #processTable + 29, checkProcessC
 				MOV R0, #processTable + 26
 				MOV @R0, #0x00
 				JMP endDelete
 	checkProcessC:
-		CJNE R2,#processTable + 54, endDelete
-			CJNE R1,#processTable + 55, endDelete
+		CJNE R2, #processTable + 54, endDelete
+			CJNE R1, #processTable + 55, endDelete
 				MOV R0, #processTable + 52
 				MOV @R0, #0x00
 				JMP endDelete
@@ -179,7 +187,9 @@ delete:
 RET
 
 new:
-	MOV DPTR, #processStartAdress
+	;MOV DPTR, processStartAdress
+	MOV DPL, LOW(processStartAdress)
+	MOV DPH, HIGH(processStartAdress)
 	MOV R1, DPL
 	MOV R2, DPH
 	
@@ -189,7 +199,7 @@ new:
 		CJNE R2,#processTable + 2, newCheckProcessB
 			CJNE R1,#processTable + 3, newCheckProcessB
 				
-				MOV SP, #processTable + 4
+				MOV SP, processTable + 4
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
@@ -212,7 +222,7 @@ new:
 	newCheckProcessB:
 		CJNE R2,#processTable + 28, newCheckProcessC
 			CJNE R1,#processTable + 29, newCheckProcessC
-				MOV SP, #processTable + 30
+				MOV SP, processTable + 30
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
@@ -236,7 +246,7 @@ new:
 	newCheckProcessC:
 		CJNE R2,#processTable + 54, endNew
 			CJNE R1,#processTable + 55, endNew
-				MOV SP, #processTable + 56
+				MOV SP, processTable + 56
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
@@ -310,20 +320,24 @@ popRegisters:
 ;RET
 
 saveStackPointer:
-	MOV R0, #index + 1
+	MOV R0, index
+	INC R0
 	MOV @R0, SP
 RET
 
 loadStackPointer:
-	MOV SP, #index + 1
+	MOV R0, index
+	INC R0
+	MOV SP, R0
 RET
 
 incrementIndex:
-	MOV A, #index
-	CJNE A,#72d, not72
-		MOV A, #0x00
+	; MOV R7, processTable
+	MOV A, index
+	CJNE A, #processtable + 72, notOffset72
+		MOV A, #processTable
 		JMP writeBack
-	not72:
+	notOffset72:
 		ADD A, #26d
 	writeBack:
 		MOV index, A

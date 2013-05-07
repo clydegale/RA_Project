@@ -16,9 +16,9 @@ RSEG		processCSegment
 
 processC:
 	
-		MOV A, #processTable
+		MOV A, processTable
 		ADD A, 56
-		MOV SP,A
+		MOV SP, A
 	; TODO add processes to table of scheduler
 
 	endlessLoop:
@@ -27,10 +27,10 @@ processC:
 		SETB SWDT
 		
 		loopRec:
-			MOV A,S0CON	
-		JNB RI0,loopRec
+			MOV A, S0CON	
+		JNB RI0, loopRec
 		
-		MOV r7,S0BUF
+		MOV R7, S0BUF
 		CALL handleSerial0Input
 		
 		CLR RI0
