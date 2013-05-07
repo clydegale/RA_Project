@@ -10,34 +10,32 @@ PUBLIC processA
 processASegment SEGMENT CODE
 RSEG		processASegment
 
-MOV R5, #0xF6 ; magic number
-
 ;CALL processA
 ;SJMP EOF
 
 processA:
 
-		MOV A, processTable
-		ADD A, 4
-		MOV SP,A
+	MOV A, #processTable
+	ADD A, #4D
+	MOV SP,A
+	
+	MOV R5, #0xF6 ; magic loop number
 
 	mainLoop:
 		CALL printAToUART
 		CALL waitRoutine		
-		
-		JMP mainLoop
+	JMP mainLoop
 
 printAToUART:
 	MOV S0BUF, #'a'
 	
 	waitForSendFinished:
 		MOV	A, S0CON
-		JNB	ACC.1, waitForSendFinished
+	JNB	ACC.1, waitForSendFinished
 	
 	ANL A, #11111101b
 	MOV S0CON, A
-	
-	RET
+RET
 
 waitRoutine:
 	MOV A, TCON
@@ -63,7 +61,7 @@ waitRoutine:
 	
 	DJNZ R5, timerPollingLoop
 	
-	RET
+RET
 	
 resetWD:
 	; reset watchdog timer

@@ -10,12 +10,13 @@ PUBLIC isNew, isDel, isNon
 ;------------------------------------------------------------------------------
 ?STACK	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
 				RSEG    ?STACK          ; switch to ?STACK segment.
-				DS 5 ; reserve your stack space
+				DS 20 ; reserve your stack space
 
  ;Datensegment zum speichern der Prozess Tabelle 
 mainData SEGMENT DATA
 RSEG mainData
-	processTable: DS 78
+	;processTable: DS 78
+	processTable: DS 100
 	processStartAdress: DS 2
 	index: DS 1
 	newBit: DS 1
@@ -64,9 +65,11 @@ timer1Interrupt:
 		
 		; check active flag
 		MOV R1, index
-	CJNE R1,#0x01, processTableLoop 
+	CJNE @R1,#0x01, processTableLoop 
 	
-	CALL loadStackPointer	
+	JMP loadStackPointer
+	returnLoadStackPointer:
+	
 	JMP popRegisters
 	returnPopRegisters:
 	
@@ -74,7 +77,6 @@ timer1Interrupt:
 	MOV newBit, #isNon
 	
 RETI
-
 
 main:
 	; Stack Pointer auf reservierten Bereich setzen
@@ -129,13 +131,10 @@ init:
 	; Initialize newBit to 0
 	MOV newBit, #isNon
 	
-	;Initialize Index to 0
-	MOV index, #0x00
-	
 	;Initialize processTable "processStartAdress" columns and reset "Active" coulmn
 	;Process A
 	MOV DPTR, #processA
-	MOV processTable + 3, DPL
+	MOV processTable + 3, DPL ; ff 09
 	MOV processTable + 2, DPH
 	MOV processTable, #0x00
 	
@@ -156,9 +155,12 @@ init:
 	MOV index, #processTable
 RET
 
+; ACTIVE | SP | startadresse1 | startadresse2 | stack
 
 delete:
-	MOV DPTR, #processStartAdress
+	; Set DPTR to the Lable Adress given by the console process
+	MOV DPH, processStartAdress + 0
+	MOV DPL, processStartAdress + 1
 	MOV R1, DPL
 	MOV R2, DPH
 	
@@ -186,23 +188,26 @@ delete:
 RET
 
 new:
-	;MOV DPTR, {processStartAdress}
-	MOV DPL, processStartAdress + 0
-	MOV DPH, processStartAdress + 1
+	; Set DPTR to the Lable Adress given by the console process
+	MOV DPH, processStartAdress + 0
+	MOV DPL, processStartAdress + 1
 	MOV R1, DPL
 	MOV R2, DPH
 	
 	MOV R3, #0x00
 	
+	MOV A, processTable + 2
+	
 	newCheckProcessA:
-		CJNE R2,#processTable + 2, newCheckProcessB
-			CJNE R1,#processTable + 3, newCheckProcessB
+		CJNE A, 2, newCheckProcessB
+			MOV A, processTable + 3
+			CJNE A, 1, newCheckProcessB			
 				
-				MOV SP, processTable + 4
+				MOV SP, #processTable + 4
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
-				MOV R3,#0x00
+				MOV R3,#0x00 ;TODO: deleteLN
 				PUSH 3
 				PUSH 3
 				PUSH 3
@@ -216,11 +221,14 @@ new:
 				PUSH 3
 				PUSH 3
 				PUSH 3			
+				MOV processTable + 1, SP
 				MOV processTable + 0, #0x01
 				JMP endNew
 	newCheckProcessB:
-		CJNE R2,#processTable + 28, newCheckProcessC
-			CJNE R1,#processTable + 29, newCheckProcessC
+		MOV A, processTable + 28
+		CJNE A, 2, newCheckProcessC
+			MOV A, processTable + 29
+			CJNE A, 1, newCheckProcessC
 				MOV SP, processTable + 30
 				PUSH 1
 				PUSH 2
@@ -239,12 +247,15 @@ new:
 				PUSH 3
 				PUSH 3
 				PUSH 3			
+				MOV processTable + 27, SP
 				MOV processTable + 26, #0x01
 				
 				JMP endNew
 	newCheckProcessC:
-		CJNE R2,#processTable + 54, endNew
-			CJNE R1,#processTable + 55, endNew
+		MOV A, processTable + 54
+		CJNE A, 2, endNew
+			MOV A, processTable + 55
+			CJNE A, 1, endNew
 				MOV SP, processTable + 56
 				PUSH 1
 				PUSH 2
@@ -263,6 +274,7 @@ new:
 				PUSH 3
 				PUSH 3
 				PUSH 3			
+				MOV processTable + 53, SP
 				MOV processTable + 52, #0x01
 				
 				JMP endNew
@@ -279,6 +291,7 @@ resetWD:
 RET
 
 pushRegisters:
+	PUSH PSW
 	PUSH 0
 	PUSH 1
 	PUSH 2
@@ -292,14 +305,12 @@ pushRegisters:
 	PUSH B
 	PUSH DPH
 	PUSH DPL
-
-	PUSH PSW
 	
-	JMP returnPushRegisters
+	
+JMP returnPushRegisters
 ;RET
 			
 popRegisters:
-	POP PSW
 	
 	POP DPL
 	POP DPH
@@ -314,8 +325,9 @@ popRegisters:
 	POP 2
 	POP 1
 	POP 0
+	POP PSW
 	
-	JMP returnPopRegisters
+JMP returnPopRegisters
 ;RET
 
 saveStackPointer:
@@ -327,16 +339,16 @@ RET
 loadStackPointer:
 	MOV R0, index
 	INC R0
-	MOV SP, R0
-RET
+	MOV SP, @R0
+JMP returnLoadStackPointer
 
 incrementIndex:
 	; MOV R7, processTable
 	MOV A, index
-	CJNE A, #processtable + 72, notOffset72
+	CJNE A, #processtable + 52, notOffset52; TODO: set max to 52
 		MOV A, #processTable
 		JMP writeBack
-	notOffset72:
+	notOffset52:
 		ADD A, #26d
 	writeBack:
 		MOV index, A

@@ -14,7 +14,7 @@ RSEG		processBSegment
 processB:
 
 		MOV A, processTable
-		ADD A, 30
+		ADD A, #30D
 		MOV SP,A
 
 	CALL printToUART

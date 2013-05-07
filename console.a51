@@ -17,7 +17,7 @@ RSEG		processCSegment
 processC:
 	
 		MOV A, processTable
-		ADD A, 56
+		ADD A, #56D
 		MOV SP, A
 	; TODO add processes to table of scheduler
 
