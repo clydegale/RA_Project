@@ -39,7 +39,6 @@ JMP		main
 mainSegment SEGMENT CODE
 RSEG mainSegment	
 
-
 timer1Interrupt:
 	CLR TF1
 	
@@ -187,9 +186,9 @@ delete:
 RET
 
 new:
-	;MOV DPTR, processStartAdress
-	MOV DPL, LOW(processStartAdress)
-	MOV DPH, HIGH(processStartAdress)
+	;MOV DPTR, {processStartAdress}
+	MOV DPL, processStartAdress + 0
+	MOV DPH, processStartAdress + 1
 	MOV R1, DPL
 	MOV R2, DPH
 	
