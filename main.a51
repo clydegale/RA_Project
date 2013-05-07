@@ -46,7 +46,9 @@ timer1Interrupt:
 	
 	; TODO: No Calls in Interrup Routine.
 	; Copy all external code directly into this routine
-	CALL pushRegisters	
+	JMP pushRegisters
+	returnPushRegisters:
+	
 	CALL saveStackPointer
 	
 	processTableLoop:
@@ -55,17 +57,18 @@ timer1Interrupt:
 		
 		MOV R0, #newBit
 		CJNE R0, #isNew, afterNew
-			CALL new
+			JMP new
 		afterNew:
-			CJNE R0, #isDel, afterDel
+			CJNE R0, #isDel, newOrDeleteFinished
 				CALL delete
-			afterDel:
 		
+		newOrDeleteFinished:
 		MOV R1, #index
-	CJNE R1,#0x01, processTableLoop 
+		CJNE R1,#0x01, processTableLoop 
 	
 	CALL loadStackPointer	
-	CALL popRegisters
+	JMP popRegisters
+	returnPopRegisters:
 	
 	;Reset newBit
 	MOV newBit, #isNon
@@ -257,7 +260,8 @@ new:
 	
 	endNew:
 
-RET
+;RET to interrupt routine
+JMP newOrDeleteFinished
 
 resetWD:
 	; reset watchdog timer
@@ -281,7 +285,9 @@ pushRegisters:
 	PUSH DPL
 
 	PUSH PSW
-RET
+	
+	JMP returnPushRegisters
+;RET
 			
 popRegisters:
 	POP PSW
@@ -299,7 +305,9 @@ popRegisters:
 	POP 2
 	POP 1
 	POP 0
-RET
+	
+	JMP returnPopRegisters
+;RET
 
 saveStackPointer:
 	MOV R0, #index + 1
