@@ -8,31 +8,31 @@ PUBLIC isNew, isDel, isNon
 ;------------------------------------------------------------------------------
 ; Put the STACK segment in the main module.
 ;------------------------------------------------------------------------------
-?STACK	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
-				RSEG    ?STACK          ; switch to ?STACK segment.
-				DS 25 ; reserve your stack space
+?STACK	SEGMENT IDATA ; ?STACK goes into IDATA RAM.
+RSEG ?STACK ; switch to ?STACK segment.
+DS 25 ; reserve your stack space
 
- ;Datensegment zum speichern der Prozess Tabelle 
+; Datensegment zum speichern der Prozess Tabelle 
 mainData SEGMENT DATA
 RSEG mainData
 	processTable: DS 78
-	;processTable: DS 100
 	processStartAdress: DS 2
 	index: DS 1
 	newBit: DS 1
-	
 	
 isNew EQU 1
 isDel EQU 2
 isNon EQU 0
 
+; define addresses of processTable rows
+isProcessA EQU processTable
+isProcessB EQU processTable + 26
+isProcessC EQU processTable + 52
+
 ;Timer Interrupt
 CSEG AT 0x1B
 JMP		timer1Interrupt
 
-
-
-;ORG 0
 CSEG AT 0
 JMP		main
 
@@ -62,7 +62,7 @@ timer1Interrupt:
 		
 		; Increment Index
 		MOV A, index
-		CJNE A, #processtable + 52, notOffset52; TODO: set max to 52
+		CJNE A, #processtable + 52, notOffset52;
 			MOV A, #processTable
 			JMP writeBack
 		notOffset52:
@@ -88,12 +88,28 @@ timer1Interrupt:
 		MOV R1, index
 	CJNE @R1,#0x01, processTableLoop 
 	
+	MOV TL1, #0x00
+	CJNE R1, #isProcessA, notProcessA
+		CLR TR1
+		MOV TH1, #0x20
+		SETB TR1
+	notProcessA:
+	CJNE R1, #isProcessB, notProcessB
+		CLR TR1
+		MOV TH1, #0x40
+		SETB TR1
+	notProcessB:
+	CJNE R1, #isProcessC, notProcessC
+		CLR TR1
+		MOV TH1, #0x80
+		SETB TR1
+	notProcessC:
+	
 	JMP loadStackPointer
-	returnLoadStackPointer:
+	returnLoadStackPointer:	
 	
-	JMP popRegisters
+	JMP popRegisters	
 	returnPopRegisters:
-	
 RETI
 
 main:
@@ -103,16 +119,16 @@ main:
 	CALL init
 	CALL callProcessC
 	
-	; Setting Prescaler (currently not working)
-	;MOV TL1, #10000000b
-	
+	MOV R7, TL1
 
 	endlessSchedLoop:
 		NOP
 		NOP
 		NOP
 		NOP	
-		;CALL resetWD
+		; reset watchdog timer
+		SETB WDT
+		SETB SWDT
 	JMP endlessSchedLoop
 
 callProcessC:
@@ -128,7 +144,6 @@ init:
 	SETB EAL
 	SETB IEN0.3
 	
-	
 	; Serial Mode 1: 8bit-UART bei Baudrate 9600
 	CLR		SM0
 	SETB	SM1
@@ -142,7 +157,13 @@ init:
 	; Set TimerMode
 	MOV A, TMOD
 	ANL A, #11001111b
-	MOV TMOD,A
+	ORL A, #00010000b
+	MOV TMOD, A
+	
+	; Setting Prescaler (currently not working)	
+	;MOV TL1, #0xFF
+	;MOV TH1, #0xFF
+	
 	; Start Timer 1
 	SETB TR1
 	
@@ -155,7 +176,6 @@ init:
 	MOV processTable + 3, DPL ; ff 09
 	MOV processTable + 2, DPH
 	MOV processTable, #0x00
-	
 
 	;Process B
 	MOV DPTR, #processB
@@ -173,8 +193,6 @@ init:
 	MOV index, #processTable
 RET
 
-; ACTIVE | SP | startadresse1 | startadresse2 | stack
-
 delete:
 	; Set DPTR to the Lable Adress given by the console process
 	MOV DPH, processStartAdress + 0
@@ -190,6 +208,7 @@ delete:
 				MOV R0, #processTable + 0
 				MOV @R0, #0x00
 				JMP endDelete
+				
 	checkProcessB:
 		MOV A, processTable + 28
 		CJNE A, 2, checkProcessC
@@ -198,6 +217,7 @@ delete:
 				MOV R0, #processTable + 26
 				MOV @R0, #0x00
 				JMP endDelete
+				
 	checkProcessC:
 		MOV A, processTable + 54
 		CJNE A, 2, endDelete
@@ -247,7 +267,9 @@ new:
 				PUSH 3			
 				MOV processTable + 1, SP
 				MOV processTable + 0, #0x01
+				
 				JMP endNew
+				
 	newCheckProcessB:
 		MOV A, processTable + 28
 		CJNE A, 2, newCheckProcessC
@@ -302,7 +324,6 @@ new:
 				MOV processTable + 52, #0x01
 				
 				JMP endNew
-	
 	endNew:
 
 ;RET to interrupt routine
@@ -318,23 +339,17 @@ pushRegisters:
 	PUSH 5
 	PUSH 6
 	PUSH 7
-
 	PUSH ACC
 	PUSH B
 	PUSH DPH
 	PUSH DPL
-	
-	
 JMP returnPushRegisters
-;RET
 			
 popRegisters:
-	
 	POP DPL
 	POP DPH
 	POP B
 	POP ACC
-	
 	POP 7
 	POP 6
 	POP 5
@@ -344,20 +359,12 @@ popRegisters:
 	POP 1
 	POP 0
 	POP PSW
-	
 JMP returnPopRegisters
-;RET
-
-; TODO remove (maybe)
-;saveStackPointer:
-;	MOV R0, index
-;	INC R0
-;	MOV @R0, SP
-;RET
 
 loadStackPointer:
 	MOV R0, index
 	INC R0
 	MOV SP, @R0
 JMP returnLoadStackPointer
+
 END

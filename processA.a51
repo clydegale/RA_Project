@@ -8,10 +8,7 @@ PUBLIC processA
 
 ; Datensegment für die eigenen Variablen anlegen
 processASegment SEGMENT CODE
-RSEG		processASegment
-
-;CALL processA
-;SJMP EOF
+RSEG processASegment
 
 processA:
 

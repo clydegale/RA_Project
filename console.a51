@@ -10,16 +10,15 @@ PUBLIC processC
 
 ; Datensegment für die eigenen Variablen anlegen
 processCSegment SEGMENT CODE
-RSEG		processCSegment
+RSEG processCSegment
 
 
 
 processC:
 	
-		MOV A, #processTable
-		ADD A, #56D
-		MOV SP, A
-	; TODO add processes to table of scheduler
+	MOV A, #processTable
+	ADD A, #56D
+	MOV SP, A
 
 	endlessLoop:
 		; reset watchdog timer
@@ -27,21 +26,19 @@ processC:
 		SETB SWDT
 		
 		loopRec:
-			MOV A, S0CON	
+			MOV A, S0CON
 		JNB RI0, loopRec
 		
 		MOV R7, S0BUF
 		CALL handleSerial0Input
 		
 		CLR RI0
-		
-	
 	JMP endlessLoop
 RET	
 	
 handleSerial0Input:
-; check input on r7 and call specific routine
-	
+
+	; check input on R7 and set parameters accordingly
 	CJNE R7,#'a', afterA 
 	
 	inputA:
