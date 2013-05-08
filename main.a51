@@ -10,13 +10,13 @@ PUBLIC isNew, isDel, isNon
 ;------------------------------------------------------------------------------
 ?STACK	SEGMENT IDATA           ; ?STACK goes into IDATA RAM.
 				RSEG    ?STACK          ; switch to ?STACK segment.
-				DS 20 ; reserve your stack space
+				DS 25 ; reserve your stack space
 
  ;Datensegment zum speichern der Prozess Tabelle 
 mainData SEGMENT DATA
 RSEG mainData
-	;processTable: DS 78
-	processTable: DS 100
+	processTable: DS 78
+	;processTable: DS 100
 	processStartAdress: DS 2
 	index: DS 1
 	newBit: DS 1
@@ -48,7 +48,11 @@ timer1Interrupt:
 	JMP pushRegisters
 	returnPushRegisters:
 	
-	CALL saveStackPointer
+	; saveStackPointer
+	MOV R0, index
+	INC R0
+	MOV @R0, SP
+	MOV SP, #?STACK
 	
 	processTableLoop:
 		CALL resetWD
@@ -83,7 +87,7 @@ main:
 	MOV		SP,#?STACK
 	
 	CALL init
-	CALL callProcessC
+	CALL callProcessA
 	
 	; Setting Prescaler (currently not working)
 	;MOV TL1, #10000000b
@@ -94,10 +98,10 @@ main:
 		NOP
 		NOP
 		NOP	
-		CALL resetWD
+		;CALL resetWD
 	JMP endlessSchedLoop
 
-callProcessC:
+callProcessA:
 	MOV DPTR, #processA
 	MOV processStartAdress + 1, DPL
 	MOV processStartAdress + 0, DPH
@@ -330,11 +334,12 @@ popRegisters:
 JMP returnPopRegisters
 ;RET
 
-saveStackPointer:
-	MOV R0, index
-	INC R0
-	MOV @R0, SP
-RET
+; TODO remove (maybe)
+;saveStackPointer:
+;	MOV R0, index
+;	INC R0
+;	MOV @R0, SP
+;RET
 
 loadStackPointer:
 	MOV R0, index
