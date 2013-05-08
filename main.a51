@@ -54,18 +54,35 @@ timer1Interrupt:
 	MOV @R0, SP
 	MOV SP, #?STACK
 	
-	processTableLoop:
-		CALL resetWD
-		CALL incrementIndex
+	; Iterate through table
+	processTableLoop:		
+		; reset watchdog timer
+		SETB WDT
+		SETB SWDT
 		
+		; Increment Index
+		MOV A, index
+		CJNE A, #processtable + 52, notOffset52; TODO: set max to 52
+			MOV A, #processTable
+			JMP writeBack
+		notOffset52:
+			ADD A, #26d
+		writeBack:
+			MOV index, A
+		
+		; update Table if newBit is Set to isNew
 		MOV R0, newBit
 		CJNE R0, #isNew, afterNew
 			JMP new
 		afterNew:
+			; update Table if newBit is Set to isDel
 			CJNE R0, #isDel, newOrDeleteFinished
 				CALL delete
 		
 		newOrDeleteFinished:
+		
+		;Reset newBit 
+		MOV newBit, #isNon
 		
 		; check active flag
 		MOV R1, index
@@ -77,9 +94,6 @@ timer1Interrupt:
 	JMP popRegisters
 	returnPopRegisters:
 	
-	;Reset newBit
-	MOV newBit, #isNon
-	
 RETI
 
 main:
@@ -87,7 +101,7 @@ main:
 	MOV		SP,#?STACK
 	
 	CALL init
-	CALL callProcessA
+	CALL callProcessC
 	
 	; Setting Prescaler (currently not working)
 	;MOV TL1, #10000000b
@@ -101,8 +115,8 @@ main:
 		;CALL resetWD
 	JMP endlessSchedLoop
 
-callProcessA:
-	MOV DPTR, #processA
+callProcessC:
+	MOV DPTR, #processC
 	MOV processStartAdress + 1, DPL
 	MOV processStartAdress + 0, DPH
 	MOV newBit, #isNew
@@ -168,21 +182,27 @@ delete:
 	MOV R1, DPL
 	MOV R2, DPH
 	
+	MOV A, processTable + 2
 	checkProcessA:
-		CJNE R2, #processTable + 2, checkProcessB
-			CJNE R1, #processTable + 3, checkProcessB
+		CJNE A, 2, checkProcessB
+			MOV A, processTable + 3
+			CJNE A, 1, checkProcessB
 				MOV R0, #processTable + 0
 				MOV @R0, #0x00
 				JMP endDelete
 	checkProcessB:
-		CJNE R2, #processTable + 28, checkProcessC
-			CJNE R1, #processTable + 29, checkProcessC
+		MOV A, processTable + 28
+		CJNE A, 2, checkProcessC
+			MOV A, processTable + 29
+			CJNE A, 1, checkProcessC
 				MOV R0, #processTable + 26
 				MOV @R0, #0x00
 				JMP endDelete
 	checkProcessC:
-		CJNE R2, #processTable + 54, endDelete
-			CJNE R1, #processTable + 55, endDelete
+		MOV A, processTable + 54
+		CJNE A, 2, endDelete
+			MOV A, processTable + 55
+			CJNE A, 1, endDelete
 				MOV R0, #processTable + 52
 				MOV @R0, #0x00
 				JMP endDelete
@@ -233,7 +253,7 @@ new:
 		CJNE A, 2, newCheckProcessC
 			MOV A, processTable + 29
 			CJNE A, 1, newCheckProcessC
-				MOV SP, processTable + 30
+				MOV SP, #processTable + 30
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
@@ -260,7 +280,7 @@ new:
 		CJNE A, 2, endNew
 			MOV A, processTable + 55
 			CJNE A, 1, endNew
-				MOV SP, processTable + 56
+				MOV SP, #processTable + 56
 				PUSH 1
 				PUSH 2
 				;Push Zero Registers to Stack
@@ -287,12 +307,6 @@ new:
 
 ;RET to interrupt routine
 JMP newOrDeleteFinished
-
-resetWD:
-	; reset watchdog timer
-	SETB WDT
-	SETB SWDT
-RET
 
 pushRegisters:
 	PUSH PSW
@@ -346,16 +360,4 @@ loadStackPointer:
 	INC R0
 	MOV SP, @R0
 JMP returnLoadStackPointer
-
-incrementIndex:
-	; MOV R7, processTable
-	MOV A, index
-	CJNE A, #processtable + 52, notOffset52; TODO: set max to 52
-		MOV A, #processTable
-		JMP writeBack
-	notOffset52:
-		ADD A, #26d
-	writeBack:
-		MOV index, A
-RET
 END

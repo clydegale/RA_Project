@@ -3,7 +3,7 @@ $NOMOD51
 
 NAME processB
 
-EXTRN DATA (processTable)
+EXTRN DATA (processTable, processStartAdress, newBit, isDel)
 PUBLIC processB
 
 
@@ -13,7 +13,7 @@ RSEG		processBSegment
 
 processB:
 
-		MOV A, processTable
+		MOV A, #processTable
 		ADD A, #30D
 		MOV SP,A
 
@@ -39,5 +39,16 @@ printToUART:
 		MOV S0CON, A
 		
 	CJNE R1, #48d, countDownLoop
+	
+	MOV DPTR, #processB
+	MOV processStartAdress + 1, DPL
+	MOV processStartAdress + 0, DPH
+	MOV newBit, #isDel
+	
+	; SETB TF1
+	doNothingLoop:
+		NOP
+		NOP
+	JMP doNothingLoop
 	
 END
