@@ -88,20 +88,21 @@ timer1Interrupt:
 		MOV R1, index
 	CJNE @R1,#0x01, processTableLoop 
 	
+	; Set Timer according to priority
 	MOV TL1, #0x00
 	CJNE R1, #isProcessA, notProcessA
 		CLR TR1
-		MOV TH1, #0x20
+		MOV TH1, #0xE0
 		SETB TR1
 	notProcessA:
 	CJNE R1, #isProcessB, notProcessB
 		CLR TR1
-		MOV TH1, #0x40
+		MOV TH1, #0xF0
 		SETB TR1
 	notProcessB:
 	CJNE R1, #isProcessC, notProcessC
 		CLR TR1
-		MOV TH1, #0x80
+		MOV TH1, #0xF8
 		SETB TR1
 	notProcessC:
 	
