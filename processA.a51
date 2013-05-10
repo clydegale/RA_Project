@@ -44,6 +44,9 @@ waitRoutine:
 		MOV A, TCON
 		
 		; loop counter
+		; joi: wird der counter noch gebraucht? so wie ich das sehe is das noch n debug überbleibsel. ich werd das nicht in das prozess A diagramm packen
+		; @patrick: wenn du hier beim refactor drüberkommst und das genauso siehst, dann schmeis die line (und die oben zur initialisierung) raus
+		; sollte ich was übersehen haben und das wird gebraucht gib mir bescheid, dann muss ich das in das diagramm einbauen
 		INC R1
 		
 		; check if loop is finished
