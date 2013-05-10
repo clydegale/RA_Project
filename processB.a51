@@ -18,6 +18,7 @@ processB:
 		MOV SP,A
 
 	CALL printToUART
+	CALL cleanUp
 	
 	
 printToUART:
@@ -39,8 +40,10 @@ printToUART:
 		MOV S0CON, A
 		
 	CJNE R1, #48d, countDownLoop
-	
-	MOV DPTR, #processB
+RET
+
+cleanUp:
+		MOV DPTR, #processB
 	MOV processStartAdress + 1, DPL
 	MOV processStartAdress + 0, DPH
 	MOV newBit, #isDel
@@ -50,5 +53,4 @@ printToUART:
 		NOP
 		NOP
 	JMP doNothingLoop
-	
 END
