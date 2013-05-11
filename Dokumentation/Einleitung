@@ -1,0 +1,11 @@
+Einleitung
+
+Ein Prozessor dient zur Ausführung von Programmcode. Befindet sich dieser Programmcode in der Ausführung spricht man von einem Prozess. Ein Prozessor kann, bedingt durch seinen Aufbau, nur einen Prozess gleichzeitig ausführen. Dies stellt solange kein Problem dar, bis mehr als ein Prozess gleichzeitig augeführt werden.
+Nun gilt es sich zu überlegen wie die Ressource Prozessor sinnvoll auf die Prozesse aufgeteilt wird. Die Zuteilung des Prozessors an die Prozesse verwaltet ein "Scheduler"
+Hier gibt es verschieden Zuteilungsmethoden:
+Kooperatives scheduling:
+	Der Prozessor führt einen Prozess bis zu dessen Ende aus. Danach wird dem nächsten Prozess der Prozessor zugeteilt. Der Scheduler verwaltet hier ausschließlich die Reihenfolge der folgenden Prozesse.
+
+nicht-Kooperatives Scheduling (preemptive):
+	Hier werdem dem Scheduler mehr Aufgaben zugeteilt als beim kooperativen Scheduling. Jeder Prozess bekommt vom Scheduler eine bestimmte Zeit den Prozessor zugeteilt bevor der Prozess unterbrochen wird und ein andere Prozess die Ressourcen bekommt, man spricht von einer sogenannten Zeitscheibe. Wird ein Prozess mitten in seiner Ausführung unterbrochen liegt es am Scheduler dessen gerade genutzten "Daten" persistent zu sichern. Beim Prozesswechsel muss er dessen gesicherten "Daten" wiederherstellen damit dieser dort weitermachen kann wo er aufgehört hat.
+Da es häufig einige Prozesse gibt die wichtiger sind als andere, muss der Scheduler sicherstellen, dass den wichtigeren Prozessen mehr Prozessorzeit zugeteilt wird. Dies lässt sich durch eine Veränderung der Zeitscheibe realisieren. Wichtige Prozesse bekommen eine größere Zeitscheibe.
