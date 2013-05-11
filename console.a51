@@ -50,6 +50,7 @@ handleSerial0Input:
 			MOV processStartAdress + 1, DPL
 			MOV processStartAdress + 0, DPH
 			MOV newBit, #isNew
+			JMP afterC
 	afterA:
 	CJNE R7,#'b', afterB
 		; trigger deletion of processA
@@ -58,6 +59,7 @@ handleSerial0Input:
 			MOV processStartAdress + 1, DPL
 			MOV processStartAdress + 0, DPH
 			MOV newBit, #isDel
+			JMP afterC
 	afterB:
 	CJNE R7,#'c', afterC
 		; trigger creation of processB
