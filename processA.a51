@@ -6,23 +6,26 @@ NAME processA
 EXTRN DATA (processTable)
 PUBLIC processA
 
-; Datensegment für die eigenen Variablen anlegen
+; create code segment for this process
 processASegment SEGMENT CODE
 RSEG processASegment
 
 processA:
-
+	; set stackpointer relative to the
+	; processTable
 	MOV A, #processTable
 	ADD A, #4D
-	MOV SP,A
+	MOV SP, A
 	
-	MOV R5, #0xF6 ; magic loop number
+	; magic loop number
+	MOV R5, #0xF6
 
 	mainLoop:
 		CALL printAToUART
 		CALL waitRoutine		
 	JMP mainLoop
 
+; write the character 'a' to UART0
 printAToUART:
 	MOV S0BUF, #'a'
 	
@@ -30,26 +33,21 @@ printAToUART:
 		MOV	A, S0CON
 	JNB	ACC.1, waitForSendFinished
 	
+	; reset TI0
 	ANL A, #11111101b
 	MOV S0CON, A
 RET
 
+; loops for about 1 second
 waitRoutine:
+	; enable timer0
 	MOV A, TCON
 	ORL A, #00010000b
 	MOV TCON, A
 	
-	MOV R1, #0x00	
+	; wait for timer0 overflow
 	timerPollingLoop:
 		MOV A, TCON
-		
-		; loop counter
-		; joi: wird der counter noch gebraucht? so wie ich das sehe is das noch n debug überbleibsel. ich werd das nicht in das prozess A diagramm packen
-		; @patrick: wenn du hier beim refactor drüberkommst und das genauso siehst, dann schmeis die line (und die oben zur initialisierung) raus
-		; sollte ich was übersehen haben und das wird gebraucht gib mir bescheid, dann muss ich das in das diagramm einbauen
-		INC R1
-		
-		; check if loop is finished
 	JNB ACC.5, timerPollingLoop
 	
 	CALL resetWD
@@ -59,6 +57,8 @@ waitRoutine:
 	ANL A, #11011111b
 	MOV TCON, A
 	
+	; return to timerPollingLoop if
+	; routine did not wait 1s
 	DJNZ R5, timerPollingLoop
 	
 RET

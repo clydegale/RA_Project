@@ -6,36 +6,38 @@ NAME processB
 EXTRN DATA (processTable, processStartAdress, newBit, isDel)
 PUBLIC processB
 
-
-;Variablen anlegen
+; define local code segment
 processBSegment SEGMENT CODE
-RSEG		processBSegment
+RSEG processBSegment
 
 processB:
 
-		MOV A, #processTable
-		ADD A, #30D
-		MOV SP,A
+	; set stack pointer relative to processTable
+	MOV A, #processTable
+	ADD A, #30D
+	MOV SP,A
 
 	CALL printToUART
 	CALL cleanUp
-	
-	
+
+; prints the characters '54321' to UART0
 printToUART:
-	; 0 = 48
-	; 1 = 49
-	
+	; initialize counter with ascii value
+	; of the character '5'
 	MOV R1, #53d
 	
+	; loop while counter > '1'
 	countDownLoop:
 		MOV S0BUF, R1
 		
+		; loop until output of single character is finished
 		waitForSendFinished:
 			MOV	A, S0CON
 		JNB	ACC.1, waitForSendFinished
 		
 		DEC R1
 		
+		; reset TI0 flag for further output
 		ANL A, #11111101b
 		MOV S0CON, A
 		
@@ -43,12 +45,14 @@ printToUART:
 RET
 
 cleanUp:
-		MOV DPTR, #processB
+	; tell the scheduler to delete processB
+	; from the processTable
+	MOV DPTR, #processB
 	MOV processStartAdress + 1, DPL
 	MOV processStartAdress + 0, DPH
 	MOV newBit, #isDel
 	
-	; SETB TF1
+	; loop until processor time of processB is over
 	doNothingLoop:
 		NOP
 		NOP
