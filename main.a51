@@ -47,7 +47,7 @@ CSEG AT 0x1B
 JMP		timer1Interrupt
 
 CSEG AT 0
-JMP		main
+JMP		bootStrapper
 
 ; create data segment for the scheduler
 mainSegment SEGMENT CODE
@@ -133,7 +133,7 @@ timer1Interrupt:
 	returnPopRegisters:
 RETI
 
-main:
+bootStrapper:
 	; set SP to a new stack for the scheduler
 	MOV SP,#?STACK
 	
