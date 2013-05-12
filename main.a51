@@ -139,8 +139,6 @@ main:
 	
 	CALL init
 	CALL callProcessC
-	
-	MOV R7, TL1
 
 	; endless loop to make sure the scheduler
 	; never ends
